@@ -1,11 +1,11 @@
-# easyreceipt-node-client
+# @nembestil/easyreceipt-node-client
 
 A TypeScript-first Node.js client for the [EasyReceipt](https://app.easyreceipt.eu) print API. Send encrypted print jobs to receipt printers from any Node.js application.
 
 ## Installation
 
 ```bash
-npm install easyreceipt-node-client
+npm install @nembestil/easyreceipt-node-client
 ```
 
 > **Requirements:** Node.js 18+ (uses the built-in `fetch` API).
@@ -13,7 +13,7 @@ npm install easyreceipt-node-client
 ## Quick Start
 
 ```typescript
-import { getStationsWithPrinters, print } from "easyreceipt-node-client";
+import { getStationsWithPrinters, print } from "@nembestil/easyreceipt-node-client";
 
 const apiKeys = [
   "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -139,7 +139,7 @@ interface PrintResponse {
 ### Check if a station API key is valid
 
 ```typescript
-import { isValidStation } from "easyreceipt-node-client";
+import { isValidStation } from "@nembestil/easyreceipt-node-client";
 
 const valid = await isValidStation("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
 
@@ -155,7 +155,7 @@ if (!valid) {
 ### Get a flat list of all printers across multiple station keys
 
 ```typescript
-import { getStationsWithPrinters } from "easyreceipt-node-client";
+import { getStationsWithPrinters } from "@nembestil/easyreceipt-node-client";
 
 const apiKeys = [
   "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -184,7 +184,7 @@ for (const p of printers) {
 ### Complete example: print to the first available printer
 
 ```typescript
-import { getStationsWithPrinters, print } from "easyreceipt-node-client";
+import { getStationsWithPrinters, print } from "@nembestil/easyreceipt-node-client";
 
 const apiKeys = [
   "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
