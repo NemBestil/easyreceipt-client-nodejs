@@ -25,6 +25,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Set package version
+        continue-on-error: true
         run: npm version ${{ steps.version.outputs.version }} --no-git-tag-version
 
       - name: Install dependencies
