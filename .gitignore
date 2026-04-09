@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Original PHP source (reference only, not part of this package)
+_orig_php/
+
+# Environment & secrets
+.env
+.env.*
+
+# Editor & OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
