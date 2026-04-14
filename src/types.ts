@@ -33,6 +33,10 @@ export interface PrintResponse {
   jobId: string;
 }
 
+export interface OpenCashDrawerResponse {
+  jobId: string;
+}
+
 /** @deprecated No longer needed — removed in favour of plain function arguments */
 export interface EasyReceiptConfig {
   apiKeys: string[];

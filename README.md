@@ -134,6 +134,30 @@ interface PrintResponse {
 
 ---
 
+### `openCashDrawer(printerId)`
+
+Sends an open signal to the cash drawer attached to the given printer. Has no effect if no cash drawer is connected.
+
+Throws synchronously if `printerId` is not a valid RFC 4122 UUID.
+
+```typescript
+const { jobId } = await openCashDrawer("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+```
+
+| Parameter   | Type     | Required | Description                       |
+| ----------- | -------- | -------- | --------------------------------- |
+| `printerId` | `string` | ✅        | UUID of the printer to signal     |
+
+**Returns:** `Promise<OpenCashDrawerResponse>`
+
+```typescript
+interface OpenCashDrawerResponse {
+  jobId: string; // UUID of the created job
+}
+```
+
+---
+
 ## Common Patterns
 
 ### Check if a station API key is valid

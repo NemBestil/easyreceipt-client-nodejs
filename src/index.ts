@@ -1,7 +1,7 @@
 import sodium from "libsodium-wrappers";
-import { PrintRequest, PrintResponse, StationsResponse } from "./types";
+import { OpenCashDrawerResponse, PrintRequest, PrintResponse, StationsResponse } from "./types";
 
-export type { EasyReceiptConfig, Printer, PrintRequest, PrintResponse, Station, StationsResponse } from "./types";
+export type { EasyReceiptConfig, OpenCashDrawerResponse, Printer, PrintRequest, PrintResponse, Station, StationsResponse } from "./types";
 
 const BASE_URL = "https://app.easyreceipt.eu/api/";
 
@@ -78,6 +78,18 @@ export async function print(
     payload: sodium.to_base64(ciphertext, sodium.base64_variants.ORIGINAL),
     copies: request.copies ?? 1,
   });
+}
+
+/**
+ * Send an open signal to a cash drawer attached to the given printer.
+ *
+ * @param printerId - UUID of the printer whose cash drawer should be opened.
+ */
+export async function openCashDrawer(
+  printerId: string
+): Promise<OpenCashDrawerResponse> {
+  assertUuids([printerId]);
+  return post("integration-app/open-cash-drawer", { printer: printerId });
 }
 
 async function post<T>(endpoint: string, body: unknown): Promise<T> {
