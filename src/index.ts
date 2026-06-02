@@ -85,13 +85,15 @@ export async function print(
 
   const ciphertext = sodium.crypto_box_seal(payloadBytes, publicKeyBytes);
 
+  const { uuid: printerUuid, baseUrl } = resolveKey(request.printer);
+
   return post("integration-app/print", {
-    printer: request.printer,
+    printer: printerUuid,
     title: request.title,
     payload: sodium.to_base64(ciphertext, sodium.base64_variants.ORIGINAL),
     copies: request.copies ?? 1,
     format: request.format ?? "html",
-  }, request.baseUrl ?? BASE_URL);
+  }, request.baseUrl ?? baseUrl);
 }
 
 /**
