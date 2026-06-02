@@ -27,6 +27,8 @@ export interface PrintRequest {
   payload: string;
   /** Number of copies (minimum 1, default 1) */
   copies?: number;
+  /** Override the API base URL (e.g. "https://my.server.com/api/"). Defaults to the EasyReceipt cloud endpoint. */
+  baseUrl?: string;
 }
 
 export interface PrintResponse {

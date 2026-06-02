@@ -8,8 +8,17 @@ const BASE_URL = "https://app.easyreceipt.eu/api/";
 // RFC 4122 UUID (versions 1–5)
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Matches "uuid@hostname.tld" — hostname suffix overrides the default endpoint
+const AT_HOST_RE = /^(.+)@([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+)$/;
+
+function resolveKey(key: string): { uuid: string; baseUrl: string } {
+  const m = AT_HOST_RE.exec(key);
+  if (m) return { uuid: m[1], baseUrl: `https://${m[2]}/api/` };
+  return { uuid: key, baseUrl: BASE_URL };
+}
+
 function assertUuids(keys: string[]): void {
-  const invalid = keys.filter((k) => !UUID_RE.test(k));
+  const invalid = keys.filter((k) => !UUID_RE.test(resolveKey(k).uuid));
   if (invalid.length > 0) {
     throw new Error(
       `Invalid station key(s) — must be RFC 4122 UUIDs: ${invalid.join(", ")}`
@@ -26,7 +35,9 @@ export async function getStationsWithPrinters(
   apiKeys: string[]
 ): Promise<StationsResponse> {
   assertUuids(apiKeys);
-  return post("integration-app/stations-with-printers", { stations: apiKeys });
+  const resolved = apiKeys.map(resolveKey);
+  const baseUrl = resolved[0]?.baseUrl ?? BASE_URL;
+  return post("integration-app/stations-with-printers", { stations: resolved.map((r) => r.uuid) }, baseUrl);
 }
 
 /**
@@ -77,7 +88,7 @@ export async function print(
     title: request.title,
     payload: sodium.to_base64(ciphertext, sodium.base64_variants.ORIGINAL),
     copies: request.copies ?? 1,
-  });
+  }, request.baseUrl ?? BASE_URL);
 }
 
 /**
@@ -89,11 +100,12 @@ export async function openCashDrawer(
   printerId: string
 ): Promise<OpenCashDrawerResponse> {
   assertUuids([printerId]);
-  return post("integration-app/open-cash-drawer", { printer: printerId });
+  const { uuid, baseUrl } = resolveKey(printerId);
+  return post("integration-app/open-cash-drawer", { printer: uuid }, baseUrl);
 }
 
-async function post<T>(endpoint: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
+async function post<T>(endpoint: string, body: unknown, baseUrl = BASE_URL): Promise<T> {
+  const res = await fetch(`${baseUrl}${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
