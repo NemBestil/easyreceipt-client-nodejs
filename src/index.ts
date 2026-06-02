@@ -78,16 +78,19 @@ export async function print(
     );
   }
 
-  const ciphertext = sodium.crypto_box_seal(
-    sodium.from_string(request.payload),
-    publicKeyBytes
-  );
+  const payloadBytes =
+    typeof request.payload === "string"
+      ? sodium.from_string(request.payload)
+      : request.payload;
+
+  const ciphertext = sodium.crypto_box_seal(payloadBytes, publicKeyBytes);
 
   return post("integration-app/print", {
     printer: request.printer,
     title: request.title,
     payload: sodium.to_base64(ciphertext, sodium.base64_variants.ORIGINAL),
     copies: request.copies ?? 1,
+    format: request.format ?? "html",
   }, request.baseUrl ?? BASE_URL);
 }
 

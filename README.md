@@ -117,12 +117,13 @@ const { jobId } = await print(
 );
 ```
 
-| Field     | Type     | Required | Description                                                             |
-| --------- | -------- | -------- | ----------------------------------------------------------------------- |
-| `printer` | `string` | ✅        | UUID of the target printer                                              |
-| `title`   | `string` | ✅        | Human-readable label for the job                                        |
-| `payload` | `string` | ✅        | Document content to print (e.g. HTML). Encrypted automatically.         |
-| `copies`  | `number` | —        | Number of copies. Minimum 1, defaults to 1.                             |
+| Field     | Type                    | Required | Description                                                                              |
+| --------- | ----------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| `printer` | `string`                | ✅        | UUID of the target printer                                                               |
+| `title`   | `string`                | ✅        | Human-readable label for the job                                                         |
+| `payload` | `string \| Uint8Array`  | ✅        | Document content to print. HTML string for `'html'` format; raw bytes for `'escpos'`.   |
+| `copies`  | `number`                | —        | Number of copies. Minimum 1, defaults to 1.                                              |
+| `format`  | `'html' \| 'escpos'`   | —        | Output format. Defaults to `'html'`. Use `'escpos'` to send a raw ESC/POS byte sequence. |
 
 **Returns:** `Promise<PrintResponse>`
 
@@ -131,6 +132,43 @@ interface PrintResponse {
   jobId: string; // UUID of the created print job
 }
 ```
+
+---
+
+### ESC/POS format
+
+Pass `format: 'escpos'` and a `Uint8Array` payload to send a raw ESC/POS byte sequence directly to the printer, bypassing HTML rendering entirely. This is useful when you already have an ESC/POS command buffer.
+
+```typescript
+import { getStationsWithPrinters, print } from "@nembestil/easyreceipt-node-client";
+
+// Example: build a minimal ESC/POS command buffer manually
+const ESC = 0x1b;
+const GS  = 0x1d;
+const commands = new Uint8Array([
+  ESC, 0x40,           // ESC @ — initialize printer
+  ...new TextEncoder().encode("Hello, ESC/POS!\n"),
+  GS,  0x56, 0x41, 0,  // GS V A — cut paper
+]);
+
+const { stations } = await getStationsWithPrinters(["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]);
+const station = stations[0];
+const printer = station.printers[0];
+
+const { jobId } = await print(
+  {
+    printer: printer.id,
+    title: "ESC/POS test",
+    payload: commands,   // Uint8Array — encrypted automatically
+    format: "escpos",
+  },
+  station.publicKey
+);
+
+console.log("ESC/POS job submitted:", jobId);
+```
+
+> **Note:** When `format` is `'escpos'` the HTML authoring guidelines below do not apply. The byte sequence is forwarded as-is to the printer after decryption on the station. No rendering step is performed.
 
 ---
 
@@ -293,13 +331,13 @@ Every document payload is encrypted **before it leaves your server**, using [lib
 ```
 Your server                  EasyReceipt cloud              Printer station
 ───────────────              ─────────────────              ───────────────
-HTML document
+HTML or ESC/POS bytes
     │
     ▼
 encrypt(doc, publicKey) ──► ciphertext stored ──────────► decrypt(ciphertext, privateKey)
                              (unreadable)                       │
                                                                ▼
-                                                          original HTML
+                                                          original content
                                                           sent to printer
 ```
 
